@@ -859,6 +859,145 @@ sum(areas_km)
 
 In total, the distribution of this species is approximately 36.3 km$^2$.
 
+## Points in polygons
+
+What is the distribution of points in the polygons? What is the
+spatiotemporal distribution of points?
+
+``` r
+arti_all <- read_csv(paste0(filepath,"converted_coords.csv")) %>%
+  na.omit()
+```
+
+    ## Rows: 589 Columns: 6
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## dbl  (5): No_of_inds, UTM_North, UTM_East, Longitude, Latitude
+    ## dttm (1): Date
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+arti_coords <- arti_all[,c("Longitude","Latitude")] %>%
+  count(Longitude,Latitude)
+```
+
+``` r
+summary(arti_coords$n)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##   1.000   1.000   1.000   2.223   2.000  18.000
+
+``` r
+ggplot(arti_coords,aes(Longitude,Latitude)) +
+  geom_point(aes(alpha=n)) +
+  coord_fixed() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+![](Appendix1_files/figure-gfm/unnamed-chunk-63-1.png)<!-- -->
+
+### Total number of points per polygon
+
+``` r
+# some points filtered out by previous steps
+# preserving that here
+# row numbers are a bit off, but all data appears to be preserved
+# artefacts of parsing down data in previous steps, accounted for here
+# number unique coords the same
+pop_points <- occ %>%
+  full_join(arti_coords) %>%
+  # na.omit() %>%
+  unique()
+```
+
+    ## Joining with `by = join_by(Longitude, Latitude)`
+
+``` r
+pop_points[is.na(pop_points)] <- 0
+```
+
+``` r
+hist(pop_points$n,main="Records per point",
+     xlab = "Sightings")
+```
+
+![](Appendix1_files/figure-gfm/unnamed-chunk-65-1.png)<!-- -->
+
+``` r
+ggplot(pop_points,aes(Longitude,Latitude)) +
+  geom_point(aes(alpha=n)) +
+  coord_fixed() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+![](Appendix1_files/figure-gfm/unnamed-chunk-66-1.png)<!-- -->
+
+``` r
+summary(pop_points$Population)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##    0.00    3.00    3.00    3.63    5.00    8.00
+
+Let’s look at a summary per population.
+
+``` r
+pop_points2 <- pop_points %>%
+  full_join(arti_all)
+```
+
+    ## Joining with `by = join_by(Longitude, Latitude)`
+
+``` r
+for(i in 0:8){
+  sub_pop_points <- pop_points %>%
+    filter(Population == i)
+  
+  print(paste("Population",i))
+  print(paste("Total number of records:",
+              sum(sub_pop_points$n)))
+}
+```
+
+    ## [1] "Population 0"
+    ## [1] "Total number of records: 8"
+    ## [1] "Population 1"
+    ## [1] "Total number of records: 16"
+    ## [1] "Population 2"
+    ## [1] "Total number of records: 10"
+    ## [1] "Population 3"
+    ## [1] "Total number of records: 353"
+    ## [1] "Population 4"
+    ## [1] "Total number of records: 24"
+    ## [1] "Population 5"
+    ## [1] "Total number of records: 144"
+    ## [1] "Population 6"
+    ## [1] "Total number of records: 8"
+    ## [1] "Population 7"
+    ## [1] "Total number of records: 23"
+    ## [1] "Population 8"
+    ## [1] "Total number of records: 3"
+
+``` r
+pop_points2 <- pop_points2 %>%
+  mutate(Year = year(Date))
+
+datemat <- table(pop_points2$Population,pop_points2$Year) %>%
+  as.data.frame() %>%
+  rename(Population = Var1,Year = Var2)
+
+ggplot(datemat, aes(x=Year, y=Freq, group=Population, color=Population)) +
+    geom_line() + theme_classic() +
+  ylab("Number of Records")
+```
+
+![](Appendix1_files/figure-gfm/unnamed-chunk-69-1.png)<!-- -->
+
 # Comparing to forest patches
 
 Here, we have forest patches from the mountains.
@@ -876,7 +1015,7 @@ plot(eu)
 plot(buff_poly,col = "red",add=T)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-61-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-70-1.png)<!-- -->
 
 # Comparing to landcover
 
@@ -894,7 +1033,7 @@ plot(landcover,col="grey",add=T)
 plot(buff_poly,col = "red",add=T)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-62-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-71-1.png)<!-- -->
 
 ``` r
 # ecological niche model of Artisornis
@@ -908,7 +1047,7 @@ plot(eu,add=T)
 plot(buff_poly,add=T,col="red")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-64-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
 
 ## Differences between models
 
@@ -919,7 +1058,7 @@ arti_theory2[arti_theory2>0] <- 1
 plot(arti_theory2)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-65-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-74-1.png)<!-- -->
 
 ``` r
 # convert to shapefile
@@ -929,7 +1068,7 @@ arti_theory_poly <- arti_theory_poly_all[2]
 plot(arti_theory_poly,col="black")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-66-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-75-1.png)<!-- -->
 
 ``` r
 expanse(arti_theory_poly,unit="km")
@@ -948,7 +1087,7 @@ plot(vect(buff_poly),col="grey")
 plot(arti_theory_poly,add=T)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-67-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
 
 ``` r
 # create intersections
@@ -991,7 +1130,7 @@ plot(buff_poly,add=T,col="grey")
 plot(occ[1],add=T,col="black",pch=".")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-69-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
 
 We can compare area of these different polygons as well.
 

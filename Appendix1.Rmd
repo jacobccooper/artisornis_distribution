@@ -777,6 +777,92 @@ sum(areas_km)
 
 In total, the distribution of this species is approximately 36.3 km$^2$.
 
+## Points in polygons
+
+What is the distribution of points in the polygons? What is the spatiotemporal distribution of points?
+
+```{r}
+arti_all <- read_csv(paste0(filepath,"converted_coords.csv")) %>%
+  na.omit()
+
+arti_coords <- arti_all[,c("Longitude","Latitude")] %>%
+  count(Longitude,Latitude)
+```
+
+
+```{r}
+summary(arti_coords$n)
+```
+
+```{r}
+ggplot(arti_coords,aes(Longitude,Latitude)) +
+  geom_point(aes(alpha=n)) +
+  coord_fixed() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+### Total number of points per polygon
+
+```{r}
+# some points filtered out by previous steps
+# preserving that here
+# row numbers are a bit off, but all data appears to be preserved
+# artefacts of parsing down data in previous steps, accounted for here
+# number unique coords the same
+pop_points <- occ %>%
+  full_join(arti_coords) %>%
+  # na.omit() %>%
+  unique()
+
+pop_points[is.na(pop_points)] <- 0
+```
+
+```{r}
+hist(pop_points$n,main="Records per point",
+     xlab = "Sightings")
+```
+```{r}
+ggplot(pop_points,aes(Longitude,Latitude)) +
+  geom_point(aes(alpha=n)) +
+  coord_fixed() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+```{r}
+summary(pop_points$Population)
+```
+
+Let's look at a summary per population.
+
+```{r}
+pop_points2 <- pop_points %>%
+  full_join(arti_all)
+
+for(i in 0:8){
+  sub_pop_points <- pop_points %>%
+    filter(Population == i)
+  
+  print(paste("Population",i))
+  print(paste("Total number of records:",
+              sum(sub_pop_points$n)))
+}
+```
+
+```{r}
+pop_points2 <- pop_points2 %>%
+  mutate(Year = year(Date))
+
+datemat <- table(pop_points2$Population,pop_points2$Year) %>%
+  as.data.frame() %>%
+  rename(Population = Var1,Year = Var2)
+
+ggplot(datemat, aes(x=Year, y=Freq, group=Population, color=Population)) +
+    geom_line() + theme_classic() +
+  ylab("Number of Records")
+```
+
 # Comparing to forest patches
 
 Here, we have forest patches from the mountains.
