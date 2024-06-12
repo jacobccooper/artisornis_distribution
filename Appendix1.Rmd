@@ -735,16 +735,72 @@ poly7 <- poly_pop(occ,7)
 poly8 <- poly_pop(occ,8)
 
 pts <- cbind(occ$Longitude,occ$Latitude)
+```
 
-plot(pts,pch=19,col="grey",asp=1)
-plot(poly1,add=T,col="red")
-plot(poly2,add=T,col="blue")
-plot(poly3,add=T,col="green")
-plot(poly4,add=T,col="black")
-plot(poly5,add=T,col="gold")
-plot(poly6,add=T,col="purple")
-plot(poly7,add=T,col="pink")
-plot(poly8,add=T,col="lightblue")
+```{r}
+# add polygons and label them
+
+poly_plotter <- function(polygon,side = NULL,label,colour){
+  if(is.null(side)){print("ERROR: Define side. right, left, top, bottom")}
+  ext_poly <- ext(polygon)
+  xmin <- as.numeric(ext_poly[1])
+  xmax <- as.numeric(ext_poly[2])
+  ymin <- as.numeric(ext_poly[3])
+  ymax <- as.numeric(ext_poly[4])
+  plot(polygon,add=T,col=colour)
+  if(side == "right"){
+    text(x = xmax + 0.025,
+         y = mean(c(ymin,ymax)),
+         label)
+  }
+  if(side == "left"){
+    text(x = xmin - 0.025,
+         y = mean(c(ymin,ymax)),
+         label)
+  }
+  if(side == "top"){
+    text(x = mean(c(xmin,xmax)),
+         y = ymax + 0.025,
+         label)
+  }
+  if(side == "bottom"){
+    text(x = mean(c(xmin,xmax)),
+         y = ymin - 0.025,
+         label)
+  }
+  if(side == "bottomright"){
+    text(x = mean(c(xmin,xmax)) + 0.025,
+         y = mean(c(ymin,ymax)) - 0.025,
+         label)
+  }
+}
+
+```
+
+
+```{r}
+pts_vect <- vect(pts)
+
+plot(pts_vect,pch=19,col="grey",
+     xlab = "Longitude",ylab = "Latitude",
+     xlim=c(38.45,38.75))
+poly_plotter(polygon = poly1, side = "left",
+             label = 1, colour = "red")
+poly_plotter(polygon = poly2, side = "right",
+             label = 2, colour = "blue")
+poly_plotter(polygon = poly3, side = "left",
+             label = 3, colour = "green")
+poly_plotter(polygon = poly4, side = "left",
+             label = 4, colour = "black")
+poly_plotter(polygon = poly5, side = "bottomright",
+             label = 5, colour = "gold")
+poly_plotter(polygon = poly6, side = "right",
+             label = 6, colour = "purple")
+poly_plotter(polygon = poly7, side = "right",
+             label = 7, colour = "pink")
+poly_plotter(polygon = poly8, side = "right",
+             label = 8, colour = "lightblue")
+sbar(5,xy = c(38.5,-4.955),below = "km",adj = c(0.5,-1.5))
 ```
 
 ```{r}
