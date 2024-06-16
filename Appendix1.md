@@ -11,10 +11,10 @@ and endemic to northern Mozambique).
 
 Specifically, we import survey data from the region to create concave
 hulls around points to understand the populations’ distributions, and
-then compare these concave hulls to ecological niche models and to
-ecoregion and forest cover layers from the mountain range to compare
-their size estimations. We are specifically trying to determine how much
-of the species distributions are encompassed in these other data layers,
+then compare these concave hulls to ecological niche models and to 2011
+Forest and forest cover layers from the mountain range to compare their
+size estimations. We are specifically trying to determine how much of
+the species distributions are encompassed in these other data layers,
 and what is best for estimating the distribution to protect the species.
 
 Required packages will be noted throughout different sections of the
@@ -802,19 +802,73 @@ poly7 <- poly_pop(occ,7)
 poly8 <- poly_pop(occ,8)
 
 pts <- cbind(occ$Longitude,occ$Latitude)
-
-plot(pts,pch=19,col="grey",asp=1)
-plot(poly1,add=T,col="red")
-plot(poly2,add=T,col="blue")
-plot(poly3,add=T,col="green")
-plot(poly4,add=T,col="black")
-plot(poly5,add=T,col="gold")
-plot(poly6,add=T,col="purple")
-plot(poly7,add=T,col="pink")
-plot(poly8,add=T,col="lightblue")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-57-1.png)<!-- -->
+``` r
+# add polygons and label them
+
+poly_plotter <- function(polygon,side = NULL,label,colour){
+  if(is.null(side)){print("ERROR: Define side. right, left, top, bottom")}
+  ext_poly <- ext(polygon)
+  xmin <- as.numeric(ext_poly[1])
+  xmax <- as.numeric(ext_poly[2])
+  ymin <- as.numeric(ext_poly[3])
+  ymax <- as.numeric(ext_poly[4])
+  plot(polygon,add=T,col=colour)
+  if(side == "right"){
+    text(x = xmax + 0.025,
+         y = mean(c(ymin,ymax)),
+         label)
+  }
+  if(side == "left"){
+    text(x = xmin - 0.025,
+         y = mean(c(ymin,ymax)),
+         label)
+  }
+  if(side == "top"){
+    text(x = mean(c(xmin,xmax)),
+         y = ymax + 0.025,
+         label)
+  }
+  if(side == "bottom"){
+    text(x = mean(c(xmin,xmax)),
+         y = ymin - 0.025,
+         label)
+  }
+  if(side == "bottomright"){
+    text(x = mean(c(xmin,xmax)) + 0.025,
+         y = mean(c(ymin,ymax)) - 0.025,
+         label)
+  }
+}
+```
+
+``` r
+pts_vect <- vect(pts)
+
+plot(pts_vect,pch=19,col="grey",
+     xlab = "Longitude",ylab = "Latitude",
+     xlim=c(38.45,38.75))
+poly_plotter(polygon = poly1, side = "left",
+             label = 1, colour = "red")
+poly_plotter(polygon = poly2, side = "right",
+             label = 2, colour = "blue")
+poly_plotter(polygon = poly3, side = "left",
+             label = 3, colour = "green")
+poly_plotter(polygon = poly4, side = "left",
+             label = 4, colour = "black")
+poly_plotter(polygon = poly5, side = "bottomright",
+             label = 5, colour = "gold")
+poly_plotter(polygon = poly6, side = "right",
+             label = 6, colour = "purple")
+poly_plotter(polygon = poly7, side = "right",
+             label = 7, colour = "pink")
+poly_plotter(polygon = poly8, side = "right",
+             label = 8, colour = "lightblue")
+sbar(5,xy = c(38.5,-4.955),below = "km",adj = c(0.5,-1.5))
+```
+
+![](Appendix1_files/figure-gfm/unnamed-chunk-59-1.png)<!-- -->
 
 ``` r
 polyx <- rbind(poly1,poly2,poly3,
@@ -828,7 +882,7 @@ buff_poly <- st_buffer(polyx,dist = 100)
 plot(buff_poly)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-58-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-60-1.png)<!-- -->
 
 Here we have the buffered polygons around all the points that were
 shown. We buffer to 100 m to reflect the general area, but keep it
@@ -898,7 +952,7 @@ ggplot(arti_coords,aes(Longitude,Latitude)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-63-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-65-1.png)<!-- -->
 
 ### Total number of points per polygon
 
@@ -925,7 +979,7 @@ hist(pop_points$n,main="Records per point",
      xlab = "Sightings")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-65-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-67-1.png)<!-- -->
 
 ``` r
 ggplot(pop_points,aes(Longitude,Latitude)) +
@@ -935,7 +989,7 @@ ggplot(pop_points,aes(Longitude,Latitude)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-66-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-68-1.png)<!-- -->
 
 ``` r
 summary(pop_points$Population)
@@ -996,7 +1050,7 @@ ggplot(datemat, aes(x=Year, y=Freq, group=Population, color=Population)) +
   ylab("Number of Records")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-69-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-71-1.png)<!-- -->
 
 # Comparing to forest patches
 
@@ -1006,16 +1060,16 @@ Here, we have forest patches from the mountains.
 # load forest patches
 eam <- vect(paste0(filepath,"Eastern Arc Mountains/EAM_forest_patches_v9.shp"))
 
-# load ecoregion area
+# load 2011 Forest area
 eu <- which(eam$BLOCNAME=="East Usambara")
 eu <- eam[eu]
 
-# plot ecoregion and bird range
+# plot 2011 Forest and bird range
 plot(eu)
 plot(buff_poly,col = "red",add=T)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-70-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-72-1.png)<!-- -->
 
 # Comparing to landcover
 
@@ -1033,7 +1087,7 @@ plot(landcover,col="grey",add=T)
 plot(buff_poly,col = "red",add=T)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-71-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
 
 ``` r
 # ecological niche model of Artisornis
@@ -1047,7 +1101,7 @@ plot(eu,add=T)
 plot(buff_poly,add=T,col="red")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-75-1.png)<!-- -->
 
 ## Differences between models
 
@@ -1058,7 +1112,7 @@ arti_theory2[arti_theory2>0] <- 1
 plot(arti_theory2)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-74-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
 
 ``` r
 # convert to shapefile
@@ -1068,7 +1122,7 @@ arti_theory_poly <- arti_theory_poly_all[2]
 plot(arti_theory_poly,col="black")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-75-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-77-1.png)<!-- -->
 
 ``` r
 expanse(arti_theory_poly,unit="km")
@@ -1087,7 +1141,7 @@ plot(vect(buff_poly),col="grey")
 plot(arti_theory_poly,add=T)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
 
 ``` r
 # create intersections
@@ -1130,7 +1184,7 @@ plot(buff_poly,add=T,col="grey")
 plot(occ[1],add=T,col="black",pch=".")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-80-1.png)<!-- -->
 
 We can compare area of these different polygons as well.
 
@@ -1161,10 +1215,10 @@ max(expanse(landcover,unit="km"))
     ## [1] 60.57615
 
 ``` r
-print("Ecoregion Area")
+print("2011 Forest Area")
 ```
 
-    ## [1] "Ecoregion Area"
+    ## [1] "2011 Forest Area"
 
 ``` r
 sum(expanse(eu,unit="km"))
@@ -1232,10 +1286,10 @@ print("")
     ## [1] ""
 
 ``` r
-print("Arti theory and Ecoregion")
+print("Arti theory and 2011 Forest")
 ```
 
-    ## [1] "Arti theory and Ecoregion"
+    ## [1] "Arti theory and 2011 Forest"
 
 ``` r
 # expanse(arti_theory_eu,unit="km")
@@ -1312,10 +1366,10 @@ print("")
     ## [1] ""
 
 ``` r
-print("Buffer and Ecoregion")
+print("Buffer and 2011 Forest")
 ```
 
-    ## [1] "Buffer and Ecoregion"
+    ## [1] "Buffer and 2011 Forest"
 
 ``` r
 # expanse(buff_eu,unit="km")

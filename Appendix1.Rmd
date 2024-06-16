@@ -9,7 +9,7 @@ output: github_document
 
 This pipeline performs distribution analyses for *Artisornis moreaui*, an endemic species found only in the East Usambara, Tanzania. (Note: This manuscript excludes *A. sousae*, sometimes considered conspecific, and endemic to northern Mozambique).
 
-Specifically, we import survey data from the region to create concave hulls around points to understand the populations' distributions, and then compare these concave hulls to ecological niche models and to ecoregion and forest cover layers from the mountain range to compare their size estimations. We are specifically trying to determine how much of the species distributions are encompassed in these other data layers, and what is best for estimating the distribution to protect the species.
+Specifically, we import survey data from the region to create concave hulls around points to understand the populations' distributions, and then compare these concave hulls to ecological niche models and to 2011 Forest and forest cover layers from the mountain range to compare their size estimations. We are specifically trying to determine how much of the species distributions are encompassed in these other data layers, and what is best for estimating the distribution to protect the species.
 
 Required packages will be noted throughout different sections of the document.
 
@@ -927,11 +927,11 @@ Here, we have forest patches from the mountains.
 # load forest patches
 eam <- vect(paste0(filepath,"Eastern Arc Mountains/EAM_forest_patches_v9.shp"))
 
-# load ecoregion area
+# load 2011 Forest area
 eu <- which(eam$BLOCNAME=="East Usambara")
 eu <- eam[eu]
 
-# plot ecoregion and bird range
+# plot 2011 Forest and bird range
 plot(eu)
 plot(buff_poly,col = "red",add=T)
 ```
@@ -1034,7 +1034,7 @@ print("Landcover Area")
 sum(expanse(landcover,unit="km"))
 min(expanse(landcover,unit="km"))
 max(expanse(landcover,unit="km"))
-print("Ecoregion Area")
+print("2011 Forest Area")
 sum(expanse(eu,unit="km"))
 min(expanse(eu,unit="km"))
 max(expanse(eu,unit="km"))
@@ -1062,7 +1062,7 @@ sum(expanse(arti_theory_landcover,unit="km"))
 ```{r}
 #arti_theory_eu
 print("")
-print("Arti theory and Ecoregion")
+print("Arti theory and 2011 Forest")
 # expanse(arti_theory_eu,unit="km")
 sum(expanse(arti_theory_eu,unit="km"))
 ```
@@ -1098,7 +1098,7 @@ sum(expanse(buff_landcover,unit="km"))
 ```{r}
 # buff + eu
 print("")
-print("Buffer and Ecoregion")
+print("Buffer and 2011 Forest")
 # expanse(buff_eu,unit="km")
 sum(expanse(buff_eu,unit="km"))
 ```
