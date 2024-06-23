@@ -942,9 +942,9 @@ plot(buff_poly,col = "red",add=T)
 landcover <- vect(paste0(filepath,"NewForestPolygonsUsambara.kml"))
 plots_and_fragments <- vect(paste0(filepath,"Plots&Fragments_15112019/Plots&Fragments_15112019.shp"))
 
-plot(eu)
-plot(landcover,col="grey",add=T)
-plot(buff_poly,col = "red",add=T)
+plot(eu,col = "grey")
+plot(landcover,add=T,lwd = 2)
+lines(buff_poly,col = "red",add=T,lwd = 2)
 ```
 
 ```{r}
@@ -958,6 +958,42 @@ plot(arti_theory)
 plot(eu,add=T)
 plot(buff_poly,add=T,col="red")
 ```
+
+### Protected areas
+
+```{r,eval=F}
+protected_areas_utm <- vect(paste0(filepath,"EAstUsambReserves_Shapefiles/forest reserves_eusa.shp"),
+                        crs="+proj=utm +zone=37 +south=T +east=T +datum=WGS84 +units=m") %>%
+  project("+proj=longlat +datum=WGS84")
+
+pa_filepath <- "WDPA_WDOECM_Jun2024_Public_TZA_shp/WDPA_WDOECM_Jun2024_Public_TZA_shp_"
+
+protected_areas0 <- vect(paste0(filepath,pa_filepath,
+                                "0/WDPA_WDOECM_Jun2024_Public_TZA_shp-polygons.shp"))
+protected_areas1 <- vect(paste0(filepath,pa_filepath,
+                                "1/WDPA_WDOECM_Jun2024_Public_TZA_shp-polygons.shp"))
+protected_areas2 <- vect(paste0(filepath,pa_filepath,
+                                "2/WDPA_WDOECM_Jun2024_Public_TZA_shp-polygons.shp"))
+
+# protected_areas <- protected_areas0 %>%
+#   combineGeoms(protected_areas1) %>%
+#   combineGeoms(protected_areas2)
+
+plot(eu,col = "grey")
+lines(protected_areas2,col="forestgreen",lwd=3)
+lines(protected_areas_utm,col="black",lwd=3)
+lines(buff_poly,col="lightblue",lwd=3)
+lines(landcover,col="black",lwd = 3)
+```
+
+```{r}
+ggplot(pop_points,aes(Longitude,Latitude)) +
+  geom_point(aes(alpha=n)) +
+  coord_fixed() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
 
 ## Differences between models
 
