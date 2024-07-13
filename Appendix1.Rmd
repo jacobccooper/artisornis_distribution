@@ -721,12 +721,48 @@ summary(dists[dists<1000&dists>0])
 ```
 
 ```{r}
+set.seed(815)
+
 # create concave shapefiles around points
 poly_pop <- function(shp,n){
   shp %>%
     filter(Population == n) %>%
     concaveman(concavity = 0.05,length_threshold = 0.01)
 }
+```
+
+```{r,eval=FALSE}
+# check variation
+# run multiple times; reported value here.
+
+totals <- NULL
+for(i in 1:100){
+  set.seed(i)
+  poly1 <- poly_pop(occ,1)
+  poly2 <- poly_pop(occ,2)
+  poly3 <- poly_pop(occ,3)
+  poly4 <- poly_pop(occ,4)
+  poly5 <- poly_pop(occ,5)
+  poly6 <- poly_pop(occ,6)
+  poly7 <- poly_pop(occ,7)
+  poly8 <- poly_pop(occ,8)
+  
+  polyx <- rbind(poly1,poly2,poly3,
+                 poly4,poly5,poly6,
+                 poly7,poly8)
+  
+  buff_poly <- st_buffer(polyx,dist = 100)
+  areas <- expanse(vect(buff_poly))
+  # divide by 1,000,000 for sq km
+  areas_km <- areas/1000000
+  totals[i] <- sum(areas_km)
+}
+```
+
+In a trial of 100 runs, the total area did not vary. May vary if computer restarted.
+
+```{r}
+# reported values 
 
 poly1 <- poly_pop(occ,1)
 poly2 <- poly_pop(occ,2)
@@ -783,10 +819,17 @@ poly_plotter <- function(polygon,side = NULL,label,colour){
 
 ```{r}
 pts_vect <- vect(pts)
+allparks <- vect(paste0(filepath,"ne_tz_parks.gpkg"))
 
-plot(pts_vect,pch=19,col="grey",
+parks <- allparks[allparks$NAME%like%"Nilo"|allparks$NAME%like%"Amani"]
+
+plot(pts_vect,pch=19,col="darkgrey",
      xlab = "Longitude",ylab = "Latitude",
      xlim=c(38.45,38.75))
+plot(parks,add=T,lwd = 0.25,col = "seashell")
+points(pts_vect,pch=19,col="darkgrey")
+
+
 poly_plotter(polygon = poly1, side = "left",
              label = 1, colour = "red")
 poly_plotter(polygon = poly2, side = "right",
@@ -803,7 +846,7 @@ poly_plotter(polygon = poly7, side = "right",
              label = 7, colour = "pink")
 poly_plotter(polygon = poly8, side = "right",
              label = 8, colour = "lightblue")
-sbar(5,xy = c(38.5,-4.955),below = "km",adj = c(0.5,-1.5))
+sbar(5,xy = c(38.5,-5),below = "km",adj = c(0.5,-1.5))
 ```
 
 ```{r}
@@ -821,20 +864,28 @@ plot(buff_poly)
 Here we have the buffered polygons around all the points that were shown. We buffer to 100 m to reflect the general area, but keep it restricted because these birds are territorial and non-migratory.
 
 ```{r}
-areas <- st_area(buff_poly)
+areas <- expanse(vect(buff_poly))
 # divide by 1,000,000 for sq km
 areas_km <- areas/1000000
 
 print(areas_km)
 ```
 
-These areas range between 21.2 km$^{2}$ for the largest area and less than a square kilometer for some of the outlier groups. Keep in mind it says "square meters", but we are correcting for this by dividing by 1,000,000.
+Population Cluster|Area ($km^2$)
+------------------|-------------
+Cluster 1|`r round(areas_km[1],2)`
+Cluster 2|`r round(areas_km[2],2)`
+Cluster 3|`r round(areas_km[3],2)`
+Cluster 4|`r round(areas_km[4],2)`
+Cluster 5|`r round(areas_km[5],2)`
+Cluster 6|`r round(areas_km[6],2)`
+Cluster 7|`r round(areas_km[7],2)`
+Cluster 8|`r round(areas_km[8],2)`
+Total|`r round(sum(areas_km),2)`
 
-```{r}
-sum(areas_km)
-```
+These areas range between `r round(max(areas_km),2)` km$^{2}$ for the largest area and less than a square kilometer for some of the outlier groups. Keep in mind it says "square meters", but we are correcting for this by dividing by 1,000,000.
 
-In total, the distribution of this species is approximately 36.3 km$^2$.
+In total, the distribution of this species is approximately `r round(sum(areas_km),2)` km$^2$.
 
 ## Points in polygons
 
@@ -942,7 +993,9 @@ plot(buff_poly,col = "red",add=T)
 # Comparing to protected areas
 
 ```{r}
-parks <- vect(paste0(filepath,"ne_tz_parks.gpkg"))
+allparks <- vect(paste0(filepath,"ne_tz_parks.gpkg"))
+
+parks <- allparks[allparks$NAME%like%"Nilo"|allparks$NAME%like%"Amani"]
 
 plot(forest_cover,col = "grey")
 plot(parks,add=T,lwd = 2)
@@ -963,6 +1016,10 @@ plot(buff_poly,add=T,col="red")
 
 ### Protected areas
 
+```{r,echo=F}
+# greenness map
+npp <- rast(paste0(filepath,"kuenm_working/g_vars/Set2/current_conditions_expanded_area/npp.asc"))
+```
 
 ```{r}
 baseplot <- function(pts_vect){
@@ -971,6 +1028,9 @@ plot(pts_vect,pch=".",col="black",
      xlab = "Longitude",ylab = "Latitude",
      xlim=c(38.45,38.75),
      ylim=c(-5.225,-4.825))
+
+# plot(npp,add=T) # greenness layer  
+
 # add protected areas
 plot(parks,col = "red",alpha = 0.25,add=T)
 # add forest cover
@@ -984,12 +1044,13 @@ sbar(5,xy = c(38.5,-5.05),below = "km",adj = c(0.5,-1.5))
 ```
 
 
+
 ```{r}
 opar <- par(no.readonly = TRUE)
 # use par to add legend next to plot
 par(mar = c(5,5,4,8))
 baseplot(pts_vect)
-legend("topright",legend = c("Occurence Area","Forest",
+legend("topright",legend = c("Occurrence Area","Forest",
                              "PAs","PAs + Forest"),
            fill = c("black","blue","red","purple"),
        border = "black",xpd = TRUE, inset = c(-0.05,0))

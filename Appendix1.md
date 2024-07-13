@@ -790,12 +790,49 @@ summary(dists[dists<1000&dists>0])
     ##   7.074 397.154 622.609 605.489 829.639 998.822
 
 ``` r
+set.seed(815)
+
 # create concave shapefiles around points
 poly_pop <- function(shp,n){
   shp %>%
     filter(Population == n) %>%
     concaveman(concavity = 0.05,length_threshold = 0.01)
 }
+```
+
+``` r
+# check variation
+# run multiple times; reported value here.
+
+totals <- NULL
+for(i in 1:100){
+  set.seed(i)
+  poly1 <- poly_pop(occ,1)
+  poly2 <- poly_pop(occ,2)
+  poly3 <- poly_pop(occ,3)
+  poly4 <- poly_pop(occ,4)
+  poly5 <- poly_pop(occ,5)
+  poly6 <- poly_pop(occ,6)
+  poly7 <- poly_pop(occ,7)
+  poly8 <- poly_pop(occ,8)
+  
+  polyx <- rbind(poly1,poly2,poly3,
+                 poly4,poly5,poly6,
+                 poly7,poly8)
+  
+  buff_poly <- st_buffer(polyx,dist = 100)
+  areas <- expanse(vect(buff_poly))
+  # divide by 1,000,000 for sq km
+  areas_km <- areas/1000000
+  totals[i] <- sum(areas_km)
+}
+```
+
+In a trial of 100 runs, the total area did not vary. May vary if
+computer restarted.
+
+``` r
+# reported values 
 
 poly1 <- poly_pop(occ,1)
 poly2 <- poly_pop(occ,2)
@@ -850,10 +887,17 @@ poly_plotter <- function(polygon,side = NULL,label,colour){
 
 ``` r
 pts_vect <- vect(pts)
+allparks <- vect(paste0(filepath,"ne_tz_parks.gpkg"))
 
-plot(pts_vect,pch=19,col="grey",
+parks <- allparks[allparks$NAME%like%"Nilo"|allparks$NAME%like%"Amani"]
+
+plot(pts_vect,pch=19,col="darkgrey",
      xlab = "Longitude",ylab = "Latitude",
      xlim=c(38.45,38.75))
+plot(parks,add=T,lwd = 0.25,col = "seashell")
+points(pts_vect,pch=19,col="darkgrey")
+
+
 poly_plotter(polygon = poly1, side = "left",
              label = 1, colour = "red")
 poly_plotter(polygon = poly2, side = "right",
@@ -870,10 +914,10 @@ poly_plotter(polygon = poly7, side = "right",
              label = 7, colour = "pink")
 poly_plotter(polygon = poly8, side = "right",
              label = 8, colour = "lightblue")
-sbar(5,xy = c(38.5,-4.955),below = "km",adj = c(0.5,-1.5))
+sbar(5,xy = c(38.5,-5),below = "km",adj = c(0.5,-1.5))
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-59-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-61-1.png)<!-- -->
 
 ``` r
 polyx <- rbind(poly1,poly2,poly3,
@@ -887,36 +931,42 @@ buff_poly <- st_buffer(polyx,dist = 100)
 plot(buff_poly)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-60-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-62-1.png)<!-- -->
 
 Here we have the buffered polygons around all the points that were
 shown. We buffer to 100 m to reflect the general area, but keep it
 restricted because these birds are territorial and non-migratory.
 
 ``` r
-areas <- st_area(buff_poly)
+areas <- expanse(vect(buff_poly))
 # divide by 1,000,000 for sq km
 areas_km <- areas/1000000
 
 print(areas_km)
 ```
 
-    ## Units: [m^2]
-    ## [1]  0.9838935  0.3423286 21.1566015  2.3142708  5.4421805  0.4681184  3.5150697
-    ## [8]  0.2841318
+    ## [1]  0.9795936  0.3408333 21.0642505  2.3041742  5.4184320  0.4660753  3.4996980
+    ## [8]  0.2828896
 
-These areas range between 21.2 km$^{2}$ for the largest area and less
+| Population Cluster | Area ($km^2$) |
+|--------------------|---------------|
+| Cluster 1          | 0.98          |
+| Cluster 2          | 0.34          |
+| Cluster 3          | 21.06         |
+| Cluster 4          | 2.3           |
+| Cluster 5          | 5.42          |
+| Cluster 6          | 0.47          |
+| Cluster 7          | 3.5           |
+| Cluster 8          | 0.28          |
+| Total              | 34.36         |
+
+These areas range between 21.06 km$^{2}$ for the largest area and less
 than a square kilometer for some of the outlier groups. Keep in mind it
 says “square meters”, but we are correcting for this by dividing by
 1,000,000.
 
-``` r
-sum(areas_km)
-```
-
-    ## 34.50659 [m^2]
-
-In total, the distribution of this species is approximately 36.3 km$^2$.
+In total, the distribution of this species is approximately 34.36
+km$^2$.
 
 ## Points in polygons
 
@@ -957,7 +1007,7 @@ ggplot(arti_coords,aes(Longitude,Latitude)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-65-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-66-1.png)<!-- -->
 
 ### Total number of points per polygon
 
@@ -984,7 +1034,7 @@ hist(pop_points$n,main="Records per point",
      xlab = "Sightings")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-67-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-68-1.png)<!-- -->
 
 ``` r
 ggplot(pop_points,aes(Longitude,Latitude)) +
@@ -994,7 +1044,7 @@ ggplot(pop_points,aes(Longitude,Latitude)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-68-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-69-1.png)<!-- -->
 
 ``` r
 summary(pop_points$Population)
@@ -1055,7 +1105,7 @@ ggplot(datemat, aes(x=Year, y=Freq, group=Population, color=Population)) +
   ylab("Number of Records")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-71-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-72-1.png)<!-- -->
 
 # Comparing to forest patches
 
@@ -1074,12 +1124,14 @@ plot(forest_cover)
 plot(buff_poly,col = "red",add=T)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-72-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
 
 # Comparing to protected areas
 
 ``` r
-parks <- vect(paste0(filepath,"ne_tz_parks.gpkg"))
+allparks <- vect(paste0(filepath,"ne_tz_parks.gpkg"))
+
+parks <- allparks[allparks$NAME%like%"Nilo"|allparks$NAME%like%"Amani"]
 
 plot(forest_cover,col = "grey")
 plot(parks,add=T,lwd = 2)
@@ -1089,7 +1141,7 @@ lines(buff_poly,col = "red",add=T,lwd = 2)
     ## Warning in graphics::plot.xy(g, type = "l", lty = lty, col = col, lwd = lwd, :
     ## "add" is not a graphical parameter
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-74-1.png)<!-- -->
 
 ``` r
 # ecological niche model of Artisornis
@@ -1103,7 +1155,7 @@ plot(forest_cover,add=T)
 plot(buff_poly,add=T,col="red")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-75-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
 
 ### Protected areas
 
@@ -1114,6 +1166,9 @@ plot(pts_vect,pch=".",col="black",
      xlab = "Longitude",ylab = "Latitude",
      xlim=c(38.45,38.75),
      ylim=c(-5.225,-4.825))
+
+# plot(npp,add=T) # greenness layer  
+
 # add protected areas
 plot(parks,col = "red",alpha = 0.25,add=T)
 # add forest cover
@@ -1131,13 +1186,13 @@ opar <- par(no.readonly = TRUE)
 # use par to add legend next to plot
 par(mar = c(5,5,4,8))
 baseplot(pts_vect)
-legend("topright",legend = c("Occurence Area","Forest",
+legend("topright",legend = c("Occurrence Area","Forest",
                              "PAs","PAs + Forest"),
            fill = c("black","blue","red","purple"),
        border = "black",xpd = TRUE, inset = c(-0.05,0))
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-77-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-79-1.png)<!-- -->
 
 ``` r
 on.exit(par(opar))
@@ -1163,7 +1218,7 @@ points(pts_vect,pch=19,col="black",alpha = 0.33,
 sbar(5,xy = c(38.48,-5.05),below = "km",adj = c(0.5,-1.5))
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-80-1.png)<!-- -->
 
 ## Differences between models
 
@@ -1174,7 +1229,7 @@ arti_theory2[arti_theory2>0] <- 1
 plot(arti_theory2)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-80-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-82-1.png)<!-- -->
 
 ``` r
 # convert to shapefile
@@ -1184,7 +1239,7 @@ arti_theory_poly <- arti_theory_poly_all[2]
 plot(arti_theory_poly,col="black")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-81-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-83-1.png)<!-- -->
 
 ``` r
 expanse(arti_theory_poly,unit="km")
@@ -1203,7 +1258,7 @@ plot(vect(buff_poly),col="grey")
 plot(arti_theory_poly,add=T)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-82-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-84-1.png)<!-- -->
 
 ``` r
 # create intersections
@@ -1254,7 +1309,7 @@ plot(buff_poly,add=T,col="grey")
 plot(occ[1],add=T,col="black",pch=".")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-84-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-86-1.png)<!-- -->
 
 We can compare area of these different polygons as well.
 
@@ -1294,19 +1349,19 @@ print("Protect Areas")
 sum(expanse(parks,unit="km"))
 ```
 
-    ## [1] 6589.168
+    ## [1] 142.2913
 
 ``` r
 min(expanse(parks,unit="km"))
 ```
 
-    ## [1] 0.0515389
+    ## [1] 58.81025
 
 ``` r
 max(expanse(parks,unit="km"))
 ```
 
-    ## [1] 3281.769
+    ## [1] 83.48107
 
 Note - these are broad areas.
 
