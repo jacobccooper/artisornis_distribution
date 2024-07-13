@@ -1,6 +1,8 @@
 Appendix 1: *Artisornis moreaui* Distribution Modelling
 ================
-Jacob C. Cooper
+Jacob C. Cooper et al.
+
+true
 
 # Introduction
 
@@ -11,11 +13,12 @@ and endemic to northern Mozambique).
 
 Specifically, we import survey data from the region to create concave
 hulls around points to understand the populations’ distributions, and
-then compare these concave hulls to ecological niche models and to 2011
-Forest and forest cover layers from the mountain range to compare their
-size estimations. We are specifically trying to determine how much of
-the species distributions are encompassed in these other data layers,
-and what is best for estimating the distribution to protect the species.
+then compare these concave hulls to ecological niche models and to
+Protected Areas and forest cover layers from the mountain range to
+compare their size estimations. We are specifically trying to determine
+how much of the species distributions are encompassed in these other
+data layers, and what is best for estimating the distribution to protect
+the species.
 
 Required packages will be noted throughout different sections of the
 document.
@@ -676,7 +679,7 @@ points(points$Longitude,points$Latitude,pch=19)
 pts <- points%>%
   select(Longitude,Latitude)
 
-env <- extract(x=final, y=pts)
+env <- terra::extract(x=final, y=pts)
 
 hist(env$Artisornis_moreaui_avg,breaks=75)
 ```
@@ -688,19 +691,21 @@ We can threshold based on several different quantiles, focusing on the
 unique environments.
 
 ``` r
+# dat correspands to env
+dat <- env$Artisornis_moreaui_avg
 uni.dat <- unique(dat)
 
 # left tailed - suitability
-
+# looking at unique habitats, as multiple records per year at some sites
 thresh <- quantile(uni.dat,c(0.2,0.1,0.05,0.025))
 
 final_thresh <- final
 # five levels
-final_thresh[final_thresh>=thresh[1]] <- 4
-final_thresh[final_thresh>=thresh[2]&final_thresh<thresh[1]] <- 3
-final_thresh[final_thresh>=thresh[3]&final_thresh<thresh[2]] <- 2
-final_thresh[final_thresh>=thresh[4]&final_thresh<thresh[3]] <- 1
-final_thresh[final_thresh<thresh[4]] <- 0
+final_thresh[final_thresh>=thresh[1]] <- 4 # 80%
+final_thresh[final_thresh>=thresh[2]&final_thresh<thresh[1]] <- 3 # 90%
+final_thresh[final_thresh>=thresh[3]&final_thresh<thresh[2]] <- 2 # 95%
+final_thresh[final_thresh>=thresh[4]&final_thresh<thresh[3]] <- 1 # 97.5%
+final_thresh[final_thresh<thresh[4]] <- 0 # everything
 
 regional_thresh <- regional
 regional_thresh[regional_thresh>=thresh[1]] <- 4
@@ -1060,32 +1065,29 @@ Here, we have forest patches from the mountains.
 # load forest patches
 eam <- vect(paste0(filepath,"Eastern Arc Mountains/EAM_forest_patches_v9.shp"))
 
-# load 2011 Forest area
-eu <- which(eam$BLOCNAME=="East Usambara")
-eu <- eam[eu]
+# load Protected Areas area
+forest_cover <- which(eam$BLOCNAME=="East Usambara")
+forest_cover <- eam[forest_cover]
 
-# plot 2011 Forest and bird range
-plot(eu)
+# plot Protected Areas and bird range
+plot(forest_cover)
 plot(buff_poly,col = "red",add=T)
 ```
 
 ![](Appendix1_files/figure-gfm/unnamed-chunk-72-1.png)<!-- -->
 
-# Comparing to landcover
+# Comparing to protected areas
 
 ``` r
-landcover <- vect(paste0(filepath,"NewForestPolygonsUsambara.kml"))
+parks <- vect(paste0(filepath,"ne_tz_parks.gpkg"))
+
+plot(forest_cover,col = "grey")
+plot(parks,add=T,lwd = 2)
+lines(buff_poly,col = "red",add=T,lwd = 2)
 ```
 
-    ## Warning: [vect] Z coordinates ignored
-
-``` r
-plots_and_fragments <- vect(paste0(filepath,"Plots&Fragments_15112019/Plots&Fragments_15112019.shp"))
-
-plot(eu)
-plot(landcover,col="grey",add=T)
-plot(buff_poly,col = "red",add=T)
-```
+    ## Warning in graphics::plot.xy(g, type = "l", lty = lty, col = col, lwd = lwd, :
+    ## "add" is not a graphical parameter
 
 ![](Appendix1_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
 
@@ -1097,11 +1099,71 @@ arti_theory <- rast(paste0(filepath,"final_threshold.asc"))
 
 ``` r
 plot(arti_theory)
-plot(eu,add=T)
+plot(forest_cover,add=T)
 plot(buff_poly,add=T,col="red")
 ```
 
 ![](Appendix1_files/figure-gfm/unnamed-chunk-75-1.png)<!-- -->
+
+### Protected areas
+
+``` r
+baseplot <- function(pts_vect){
+# create base plot
+plot(pts_vect,pch=".",col="black",
+     xlab = "Longitude",ylab = "Latitude",
+     xlim=c(38.45,38.75),
+     ylim=c(-5.225,-4.825))
+# add protected areas
+plot(parks,col = "red",alpha = 0.25,add=T)
+# add forest cover
+plot(forest_cover,col = "blue",add=T,alpha=0.25)
+# add population polygons
+plot(buff_poly,lwd=2,add=T)
+points(pts_vect,pch=19,col="black",alpha = 0.33,
+     xlab = "Longitude",ylab = "Latitude")
+sbar(5,xy = c(38.5,-5.05),below = "km",adj = c(0.5,-1.5))
+}
+```
+
+``` r
+opar <- par(no.readonly = TRUE)
+# use par to add legend next to plot
+par(mar = c(5,5,4,8))
+baseplot(pts_vect)
+legend("topright",legend = c("Occurence Area","Forest",
+                             "PAs","PAs + Forest"),
+           fill = c("black","blue","red","purple"),
+       border = "black",xpd = TRUE, inset = c(-0.05,0))
+```
+
+![](Appendix1_files/figure-gfm/unnamed-chunk-77-1.png)<!-- -->
+
+``` r
+on.exit(par(opar))
+```
+
+``` r
+# create base plot
+plot(pts_vect,pch=".",col="black",
+     xlab = "Longitude",ylab = "Latitude",
+     xlim=c(38.45,38.75),
+     ylim=c(-5.225,-4.825))
+# add niche model
+plot(arti_theory,alpha = 0.4,add=T,
+     plg = list(title = "Threshold",
+                title.cex = 1,
+                cex = 1,
+                legend = c("Model Area","97.5%",
+                           "95%","90%","80%")))
+# add population polygons
+plot(buff_poly,lwd=2,add=T)
+points(pts_vect,pch=19,col="black",alpha = 0.33,
+     xlab = "Longitude",ylab = "Latitude")
+sbar(5,xy = c(38.48,-5.05),below = "km",adj = c(0.5,-1.5))
+```
+
+![](Appendix1_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
 
 ## Differences between models
 
@@ -1112,7 +1174,7 @@ arti_theory2[arti_theory2>0] <- 1
 plot(arti_theory2)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-80-1.png)<!-- -->
 
 ``` r
 # convert to shapefile
@@ -1122,7 +1184,7 @@ arti_theory_poly <- arti_theory_poly_all[2]
 plot(arti_theory_poly,col="black")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-77-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-81-1.png)<!-- -->
 
 ``` r
 expanse(arti_theory_poly,unit="km")
@@ -1141,39 +1203,47 @@ plot(vect(buff_poly),col="grey")
 plot(arti_theory_poly,add=T)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-78-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-82-1.png)<!-- -->
 
 ``` r
 # create intersections
-## theory intersections
+## theory intersection with actual range
 arti_theory_buffer <- arti_theory_poly %>%
   terra::intersect(vect(buff_poly))
 
 # remove self intersection error
-landcover2 <- makeValid(landcover)
+# make valid if needed
+# landcover2 <- makeValid(forest_cover)
 
+landcover2 <- forest_cover
+
+# model intersect with forest
 arti_theory_landcover <- arti_theory_poly %>%
-  terra::intersect(landcover2)
+  terra::intersect(forest_cover)
 
-arti_theory_eu <- arti_theory_poly %>%
-  terra::intersect(eu)
+# model intersect with parks
+arti_theory_parks <- arti_theory_poly %>%
+  terra::intersect(parks)
 
+# model intersect with parks and forest
 arti_all_model <- arti_theory_poly %>%
-  terra::intersect(eu) %>%
+  terra::intersect(parks) %>%
   terra::intersect(landcover2)
 
+# intersections of parks, forest, theory, and actual distribution
 arti_all_info <- arti_theory_poly %>%
-  terra::intersect(eu) %>%
+  terra::intersect(parks) %>%
   terra::intersect(landcover2) %>%
   terra::intersect(vect(buff_poly))
 
 # looking at species distribution directly
-
-buff_landcover <- vect(buff_poly) %>%
+# species with forest
+buff_forest_cover <- vect(buff_poly) %>%
   terra::intersect(landcover2)
 
-buff_eu <- vect(buff_poly) %>%
-  terra::intersect(eu)
+# buffered polygons with parks
+buff_parks <- vect(buff_poly) %>%
+  terra::intersect(parks)
 ```
 
 Let’s compare these maps.
@@ -1184,72 +1254,74 @@ plot(buff_poly,add=T,col="grey")
 plot(occ[1],add=T,col="black",pch=".")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-80-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-84-1.png)<!-- -->
 
 We can compare area of these different polygons as well.
 
 First, for comparison:
 
 ``` r
-print("Landcover Area")
+print("Forest Cover Area")
 ```
 
-    ## [1] "Landcover Area"
+    ## [1] "Forest Cover Area"
 
 ``` r
-sum(expanse(landcover,unit="km"))
-```
-
-    ## [1] 190.138
-
-``` r
-min(expanse(landcover,unit="km"))
-```
-
-    ## [1] 0.004093615
-
-``` r
-max(expanse(landcover,unit="km"))
-```
-
-    ## [1] 60.57615
-
-``` r
-print("2011 Forest Area")
-```
-
-    ## [1] "2011 Forest Area"
-
-``` r
-sum(expanse(eu,unit="km"))
+sum(expanse(landcover2,unit="km"))
 ```
 
     ## [1] 384.343
 
 ``` r
-min(expanse(eu,unit="km"))
+min(expanse(landcover2,unit="km"))
 ```
 
     ## [1] 0.0100078
 
 ``` r
-max(expanse(eu,unit="km"))
+max(expanse(landcover2,unit="km"))
 ```
 
     ## [1] 121.4385
 
 ``` r
-# arti theory and buffer
+print("Protect Areas")
+```
+
+    ## [1] "Protect Areas"
+
+``` r
+sum(expanse(parks,unit="km"))
+```
+
+    ## [1] 6589.168
+
+``` r
+min(expanse(parks,unit="km"))
+```
+
+    ## [1] 0.0515389
+
+``` r
+max(expanse(parks,unit="km"))
+```
+
+    ## [1] 3281.769
+
+Note - these are broad areas.
+
+``` r
+# Artisornis niche modelsand buffer
 print("")
 ```
 
     ## [1] ""
 
 ``` r
-print("Arti theory and Buffer")
+print("Artisornis niche model and distribution polygons")
 ```
 
-    ## [1] "Arti theory and Buffer"
+    ## [1] "Artisornis niche model and distribution polygons"
 
 ``` r
 # expanse(arti_theory_buffer,unit="km")
@@ -1259,44 +1331,44 @@ sum(expanse(arti_theory_buffer,unit="km"))
     ## [1] 34.03217
 
 ``` r
-# arti theory landcover
+# Artisornis niche models and landcover
 print("")
 ```
 
     ## [1] ""
 
 ``` r
-print("Arti theory and Landcover")
+print("Artisornis niche models and Forest Cover")
 ```
 
-    ## [1] "Arti theory and Landcover"
+    ## [1] "Artisornis niche models and Forest Cover"
 
 ``` r
 # expanse(arti_theory_landcover,unit="km")
 sum(expanse(arti_theory_landcover,unit="km"))
 ```
 
-    ## [1] 110.7061
+    ## [1] 108.3166
 
 ``` r
-#arti_theory_eu
+#arti_theory_parks
 print("")
 ```
 
     ## [1] ""
 
 ``` r
-print("Arti theory and 2011 Forest")
+print("Artisornis niche models and Protected Areas")
 ```
 
-    ## [1] "Arti theory and 2011 Forest"
+    ## [1] "Artisornis niche models and Protected Areas"
 
 ``` r
-# expanse(arti_theory_eu,unit="km")
-sum(expanse(arti_theory_eu,unit="km"))
+# expanse(arti_theory_parks,unit="km")
+sum(expanse(arti_theory_parks,unit="km"))
 ```
 
-    ## [1] 108.3166
+    ## [1] 85.36851
 
 ``` r
 # arti_all_models
@@ -1306,17 +1378,17 @@ print("")
     ## [1] ""
 
 ``` r
-print("All models and landcover combined")
+print("Intersection of niche models, forest cover, and protected areas")
 ```
 
-    ## [1] "All models and landcover combined"
+    ## [1] "Intersection of niche models, forest cover, and protected areas"
 
 ``` r
 # expanse(arti_all_model,unit="km")
 sum(expanse(arti_all_model,unit="km"))
 ```
 
-    ## [1] 84.99349
+    ## [1] 71.71335
 
 ``` r
 # arti_all_info
@@ -1326,17 +1398,17 @@ print("")
     ## [1] ""
 
 ``` r
-print("All presented info")
+print("All models, parks, and forest cover with distribution polygons")
 ```
 
-    ## [1] "All presented info"
+    ## [1] "All models, parks, and forest cover with distribution polygons"
 
 ``` r
 # expanse(arti_all_info,unit="km")
 sum(expanse(arti_all_info,unit="km"))
 ```
 
-    ## [1] 21.97447
+    ## [1] 21.19211
 
 ``` r
 # buff + landcover
@@ -1346,57 +1418,57 @@ print("")
     ## [1] ""
 
 ``` r
-print("Buffer + Landcover")
+print("Distribution polygons (buffered) + Landcover")
 ```
 
-    ## [1] "Buffer + Landcover"
+    ## [1] "Distribution polygons (buffered) + Landcover"
 
 ``` r
-# expanse(buff_landcover,unit="km")
-sum(expanse(buff_landcover,unit="km"))
+# expanse(buff_forest_cover,unit="km")
+sum(expanse(buff_forest_cover,unit="km"))
 ```
 
-    ## [1] 27.18451
+    ## [1] 25.28195
 
 ``` r
-# buff + eu
+# buff + parks
 print("")
 ```
 
     ## [1] ""
 
 ``` r
-print("Buffer and 2011 Forest")
+print("Distribution polygons (buffered) and Protected Areas")
 ```
 
-    ## [1] "Buffer and 2011 Forest"
+    ## [1] "Distribution polygons (buffered) and Protected Areas"
 
 ``` r
-# expanse(buff_eu,unit="km")
-sum(expanse(buff_eu,unit="km"))
+# expanse(buff_parks,unit="km")
+sum(expanse(buff_parks,unit="km"))
 ```
 
-    ## [1] 25.28195
+    ## [1] 26.3485
 
 ``` r
 # buff removing all
 # arti_all_info
 buff_poly2 <- makeValid(vect(buff_poly))
 remaining <- buff_poly2 %>%
-  erase(eu) %>%
+  erase(parks) %>%
   erase(landcover2) %>%
   erase(arti_theory_poly)
 
 expanse(remaining,unit="km")
 ```
 
-    ## numeric(0)
+    ## [1] 0.01101826
 
 ``` r
 sum(expanse(remaining,unit="km"))
 ```
 
-    ## [1] 0
+    ## [1] 0.01101826
 
 # Citations
 
