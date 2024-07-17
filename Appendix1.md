@@ -1094,13 +1094,14 @@ for(i in 0:8){
 
 ``` r
 pop_points2 <- pop_points2 %>%
-  mutate(Year = year(Date))
+  mutate(Year = year(Date)) %>%
+  rename("Subpopulation" = Population)
 
-datemat <- table(pop_points2$Population,pop_points2$Year) %>%
+datemat <- table(pop_points2$Subpopulation,pop_points2$Year) %>%
   as.data.frame() %>%
-  rename(Population = Var1,Year = Var2)
+  rename(Subpopulation = Var1,Year = Var2)
 
-ggplot(datemat, aes(x=Year, y=Freq, group=Population, color=Population)) +
+ggplot(datemat, aes(x=Year, y=Freq, group=Subpopulation, color=Subpopulation)) +
     geom_line() + theme_classic() +
   ylab("Number of Records")
 ```
