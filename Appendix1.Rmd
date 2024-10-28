@@ -3,7 +3,6 @@ title: "Appendix 1: *Artisornis moreaui* Distribution Modelling"
 author: "Jacob C. Cooper et al."
 urlcolor: "blue"
 output: github_document
-toc: true
 ---
 
 # Introduction
@@ -959,6 +958,16 @@ for(i in 0:8){
               sum(sub_pop_points$n)))
 }
 ```
+
+```{r}
+pop_points2_tab <- table(pop_points2$Population) %>% as.numeric()
+
+barplot((pop_points2_tab),
+        names.arg = 0:(length(pop_points2_tab)-1),
+        xlab = "Population",
+        ylab = "# of Records")
+```
+
 
 ```{r}
 pop_points2 <- pop_points2 %>%

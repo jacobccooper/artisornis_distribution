@@ -2,8 +2,6 @@ Appendix 1: *Artisornis moreaui* Distribution Modelling
 ================
 Jacob C. Cooper et al.
 
-true
-
 # Introduction
 
 This pipeline performs distribution analyses for *Artisornis moreaui*,
@@ -370,7 +368,7 @@ library(kuenm)
 library(curl)
 ```
 
-    ## Using libcurl 8.6.0 with LibreSSL/3.3.6
+    ## Using libcurl 8.7.1 with LibreSSL/3.3.6
 
     ## 
     ## Attaching package: 'curl'
@@ -1093,6 +1091,17 @@ for(i in 0:8){
     ## [1] "Total number of records: 3"
 
 ``` r
+pop_points2_tab <- table(pop_points2$Population) %>% as.numeric()
+
+barplot((pop_points2_tab),
+        names.arg = 0:(length(pop_points2_tab)-1),
+        xlab = "Population",
+        ylab = "# of Records")
+```
+
+![](Appendix1_files/figure-gfm/unnamed-chunk-72-1.png)<!-- -->
+
+``` r
 pop_points2 <- pop_points2 %>%
   mutate(Year = year(Date)) %>%
   rename("Subpopulation" = Population)
@@ -1106,7 +1115,7 @@ ggplot(datemat, aes(x=Year, y=Freq, group=Subpopulation, color=Subpopulation)) +
   ylab("Number of Records")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-72-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
 
 # Comparing to forest patches
 
@@ -1125,7 +1134,7 @@ plot(forest_cover)
 plot(buff_poly,col = "red",add=T)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-73-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-74-1.png)<!-- -->
 
 # Comparing to protected areas
 
@@ -1142,7 +1151,7 @@ lines(buff_poly,col = "red",add=T,lwd = 2)
     ## Warning in graphics::plot.xy(g, type = "l", lty = lty, col = col, lwd = lwd, :
     ## "add" is not a graphical parameter
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-74-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-75-1.png)<!-- -->
 
 ``` r
 # ecological niche model of Artisornis
@@ -1156,7 +1165,7 @@ plot(forest_cover,add=T)
 plot(buff_poly,add=T,col="red")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-76-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-77-1.png)<!-- -->
 
 ### Protected areas
 
@@ -1193,7 +1202,7 @@ legend("topright",legend = c("Occurrence Area","Forest",
        border = "black",xpd = TRUE, inset = c(-0.05,0))
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-79-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-80-1.png)<!-- -->
 
 ``` r
 on.exit(par(opar))
@@ -1219,7 +1228,7 @@ points(pts_vect,pch=19,col="black",alpha = 0.33,
 sbar(5,xy = c(38.48,-5.05),below = "km",adj = c(0.5,-1.5))
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-80-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-81-1.png)<!-- -->
 
 ## Differences between models
 
@@ -1230,7 +1239,7 @@ arti_theory2[arti_theory2>0] <- 1
 plot(arti_theory2)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-82-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-83-1.png)<!-- -->
 
 ``` r
 # convert to shapefile
@@ -1240,7 +1249,7 @@ arti_theory_poly <- arti_theory_poly_all[2]
 plot(arti_theory_poly,col="black")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-83-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-84-1.png)<!-- -->
 
 ``` r
 expanse(arti_theory_poly,unit="km")
@@ -1259,7 +1268,7 @@ plot(vect(buff_poly),col="grey")
 plot(arti_theory_poly,add=T)
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-84-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-85-1.png)<!-- -->
 
 ``` r
 # create intersections
@@ -1310,7 +1319,7 @@ plot(buff_poly,add=T,col="grey")
 plot(occ[1],add=T,col="black",pch=".")
 ```
 
-![](Appendix1_files/figure-gfm/unnamed-chunk-86-1.png)<!-- -->
+![](Appendix1_files/figure-gfm/unnamed-chunk-87-1.png)<!-- -->
 
 We can compare area of these different polygons as well.
 
@@ -1567,7 +1576,7 @@ citation("curl")
     ## To cite package 'curl' in publications use:
     ## 
     ##   Ooms J (2024). _curl: A Modern and Flexible Web Client for R_. R
-    ##   package version 5.2.1, <https://CRAN.R-project.org/package=curl>.
+    ##   package version 5.2.3, <https://CRAN.R-project.org/package=curl>.
     ## 
     ## A BibTeX entry for LaTeX users is
     ## 
@@ -1575,7 +1584,7 @@ citation("curl")
     ##     title = {curl: A Modern and Flexible Web Client for R},
     ##     author = {Jeroen Ooms},
     ##     year = {2024},
-    ##     note = {R package version 5.2.1},
+    ##     note = {R package version 5.2.3},
     ##     url = {https://CRAN.R-project.org/package=curl},
     ##   }
 
@@ -1585,17 +1594,18 @@ citation("data.table")
 
     ## To cite package 'data.table' in publications use:
     ## 
-    ##   Barrett T, Dowle M, Srinivasan A, Gorecki J, Chirico M, Hocking T
-    ##   (2024). _data.table: Extension of `data.frame`_. R package version
-    ##   1.15.4, <https://CRAN.R-project.org/package=data.table>.
+    ##   Barrett T, Dowle M, Srinivasan A, Gorecki J, Chirico M, Hocking T,
+    ##   Schwendinger B (2024). _data.table: Extension of `data.frame`_. R
+    ##   package version 1.16.0,
+    ##   <https://CRAN.R-project.org/package=data.table>.
     ## 
     ## A BibTeX entry for LaTeX users is
     ## 
     ##   @Manual{,
     ##     title = {data.table: Extension of `data.frame`},
-    ##     author = {Tyson Barrett and Matt Dowle and Arun Srinivasan and Jan Gorecki and Michael Chirico and Toby Hocking},
+    ##     author = {Tyson Barrett and Matt Dowle and Arun Srinivasan and Jan Gorecki and Michael Chirico and Toby Hocking and Benjamin Schwendinger},
     ##     year = {2024},
-    ##     note = {R package version 1.15.4},
+    ##     note = {R package version 1.16.0},
     ##     url = {https://CRAN.R-project.org/package=data.table},
     ##   }
 
