@@ -1,8 +1,12 @@
 Appendix 1: *Artisornis moreaui* Distribution Modelling
 ================
-Jacob C. Cooper et al.
+Jacob C. Cooper
 
 # Introduction
+
+Code written by Jacob C. Cooper; manuscript authors are: Norbert J.
+Cordeiro, Jacob C. Cooper, Victor Mkongewa, Martin Joho, Jasson John &
+P. Kariuki Ndang’ang’a.
 
 This pipeline performs distribution analyses for *Artisornis moreaui*,
 an endemic species found only in the East Usambara, Tanzania. (Note:
@@ -73,9 +77,9 @@ utms <- cbind(arti_surveys$UTM_East,
   vect(type="points",crs="+proj=utm +zone=37 +south=T +east=T +datum=WGS84 +units=m")
 ```
 
-    ## Warning in p@ptr$setPointsXY(as.double(x[, 1]), as.double(x[, 2])): NAs
+    ## Warning in p@pntr$setPointsXY(as.double(x[, 1]), as.double(x[, 2])): NAs
     ## introduced by coercion
-    ## Warning in p@ptr$setPointsXY(as.double(x[, 1]), as.double(x[, 2])): NAs
+    ## Warning in p@pntr$setPointsXY(as.double(x[, 1]), as.double(x[, 2])): NAs
     ## introduced by coercion
 
 ``` r
@@ -116,13 +120,13 @@ write_csv(converted_data,paste0(filepath,"converted_coords.csv"))
 summary(converted_data)
 ```
 
-    ##       Date                          No_of_inds     UTM_North      
-    ##  Min.   :2006-01-14 00:00:00.00   Min.   :1.00   Min.   :9427654  
-    ##  1st Qu.:2008-05-08 00:00:00.00   1st Qu.:1.00   1st Qu.:9432568  
-    ##  Median :2010-09-06 00:00:00.00   Median :2.00   Median :9434292  
-    ##  Mean   :2011-05-14 19:57:57.75   Mean   :1.57   Mean   :9435884  
-    ##  3rd Qu.:2014-09-19 00:00:00.00   3rd Qu.:2.00   3rd Qu.:9436599  
-    ##  Max.   :2017-07-12 00:00:00.00   Max.   :4.00   Max.   :9458649  
+    ##       Date                       No_of_inds     UTM_North      
+    ##  Min.   :2006-01-14 00:00:00   Min.   :1.00   Min.   :9427654  
+    ##  1st Qu.:2008-05-08 00:00:00   1st Qu.:1.00   1st Qu.:9432568  
+    ##  Median :2010-09-06 00:00:00   Median :2.00   Median :9434292  
+    ##  Mean   :2011-05-14 19:57:57   Mean   :1.57   Mean   :9435884  
+    ##  3rd Qu.:2014-09-19 00:00:00   3rd Qu.:2.00   3rd Qu.:9436599  
+    ##  Max.   :2017-07-12 00:00:00   Max.   :4.00   Max.   :9458649  
     ##     UTM_East        Longitude        Latitude     
     ##  Min.   :452813   Min.   :38.57   Min.   :-5.178  
     ##  1st Qu.:455025   1st Qu.:38.59   1st Qu.:-5.133  
@@ -368,7 +372,7 @@ library(kuenm)
 library(curl)
 ```
 
-    ## Using libcurl 8.7.1 with LibreSSL/3.3.6
+    ## Using libcurl 8.14.1 with LibreSSL/3.3.6
 
     ## 
     ## Attaching package: 'curl'
@@ -744,7 +748,7 @@ library(terra)
 library(sf)
 ```
 
-    ## Linking to GEOS 3.11.0, GDAL 3.5.3, PROJ 9.1.0; sf_use_s2() is TRUE
+    ## Linking to GEOS 3.13.0, GDAL 3.8.5, PROJ 9.5.1; sf_use_s2() is TRUE
 
 ``` r
 library(tidyverse)
@@ -889,6 +893,10 @@ allparks <- vect(paste0(filepath,"ne_tz_parks.gpkg"))
 
 parks <- allparks[allparks$NAME%like%"Nilo"|allparks$NAME%like%"Amani"]
 
+# png(paste0(filepath, "cordeiro_fig1.png"), 
+#     width = 100, height = 100, 
+#     units = "mm", res = 300)
+
 plot(pts_vect,pch=19,col="darkgrey",
      xlab = "Longitude",ylab = "Latitude",
      xlim=c(38.45,38.75))
@@ -916,6 +924,10 @@ sbar(5,xy = c(38.5,-5),below = "km",adj = c(0.5,-1.5))
 ```
 
 ![](Appendix1_files/figure-gfm/unnamed-chunk-61-1.png)<!-- -->
+
+``` r
+# dev.off()
+```
 
 ``` r
 polyx <- rbind(poly1,poly2,poly3,
@@ -1093,6 +1105,9 @@ for(i in 0:8){
 ``` r
 pop_points2_tab <- table(pop_points2$Population) %>% as.numeric()
 
+# png(paste0(filepath,"cordeiro_fig3.png"), 
+#     width = 100, height = 100, 
+#     units = "mm", res = 300)
 barplot((pop_points2_tab),
         names.arg = 0:(length(pop_points2_tab)-1),
         xlab = "Population",
@@ -1100,6 +1115,10 @@ barplot((pop_points2_tab),
 ```
 
 ![](Appendix1_files/figure-gfm/unnamed-chunk-72-1.png)<!-- -->
+
+``` r
+# dev.off()
+```
 
 ``` r
 pop_points2 <- pop_points2 %>%
@@ -1192,13 +1211,16 @@ sbar(5,xy = c(38.5,-5.05),below = "km",adj = c(0.5,-1.5))
 ```
 
 ``` r
+# png(paste0(filepath,"cordeiro_fig2B.png"), 
+#     width = 167, height = 100, 
+#     units = "mm", res = 300)
 opar <- par(no.readonly = TRUE)
 # use par to add legend next to plot
 par(mar = c(5,5,4,8))
 baseplot(pts_vect)
 legend("topright",legend = c("Occurrence Area","Forest",
                              "PAs","PAs + Forest"),
-           fill = c("black","blue","red","purple"),
+           fill = c("black","#CCCDFF","#FFCDCD","#CBA6D9"),
        border = "black",xpd = TRUE, inset = c(-0.05,0))
 ```
 
@@ -1206,9 +1228,13 @@ legend("topright",legend = c("Occurrence Area","Forest",
 
 ``` r
 on.exit(par(opar))
+# dev.off()
 ```
 
 ``` r
+# png(paste0(filepath,"cordeiro_fig2A.png"), 
+#     width = 125, height = 100, 
+#     units = "mm", res = 300)
 # create base plot
 plot(pts_vect,pch=".",col="black",
      xlab = "Longitude",ylab = "Latitude",
@@ -1229,6 +1255,10 @@ sbar(5,xy = c(38.48,-5.05),below = "km",adj = c(0.5,-1.5))
 ```
 
 ![](Appendix1_files/figure-gfm/unnamed-chunk-81-1.png)<!-- -->
+
+``` r
+# dev.off()
+```
 
 ## Differences between models
 
@@ -1556,8 +1586,9 @@ citation("concaveman")
     ## To cite package 'concaveman' in publications use:
     ## 
     ##   Gombin J, Vaidyanathan R, Agafonkin V (2020). _concaveman: A Very
-    ##   Fast 2D Concave Hull Algorithm_. R package version 1.1.0,
-    ##   <https://CRAN.R-project.org/package=concaveman>.
+    ##   Fast 2D Concave Hull Algorithm_. doi:10.32614/CRAN.package.concaveman
+    ##   <https://doi.org/10.32614/CRAN.package.concaveman>, R package version
+    ##   1.1.0, <https://CRAN.R-project.org/package=concaveman>.
     ## 
     ## A BibTeX entry for LaTeX users is
     ## 
@@ -1567,6 +1598,7 @@ citation("concaveman")
     ##     year = {2020},
     ##     note = {R package version 1.1.0},
     ##     url = {https://CRAN.R-project.org/package=concaveman},
+    ##     doi = {10.32614/CRAN.package.concaveman},
     ##   }
 
 ``` r
@@ -1575,17 +1607,20 @@ citation("curl")
 
     ## To cite package 'curl' in publications use:
     ## 
-    ##   Ooms J (2024). _curl: A Modern and Flexible Web Client for R_. R
-    ##   package version 5.2.3, <https://CRAN.R-project.org/package=curl>.
+    ##   Ooms J (2025). _curl: A Modern and Flexible Web Client for R_.
+    ##   doi:10.32614/CRAN.package.curl
+    ##   <https://doi.org/10.32614/CRAN.package.curl>, R package version
+    ##   6.4.0, <https://CRAN.R-project.org/package=curl>.
     ## 
     ## A BibTeX entry for LaTeX users is
     ## 
     ##   @Manual{,
     ##     title = {curl: A Modern and Flexible Web Client for R},
     ##     author = {Jeroen Ooms},
-    ##     year = {2024},
-    ##     note = {R package version 5.2.3},
+    ##     year = {2025},
+    ##     note = {R package version 6.4.0},
     ##     url = {https://CRAN.R-project.org/package=curl},
+    ##     doi = {10.32614/CRAN.package.curl},
     ##   }
 
 ``` r
@@ -1595,18 +1630,20 @@ citation("data.table")
     ## To cite package 'data.table' in publications use:
     ## 
     ##   Barrett T, Dowle M, Srinivasan A, Gorecki J, Chirico M, Hocking T,
-    ##   Schwendinger B (2024). _data.table: Extension of `data.frame`_. R
-    ##   package version 1.16.0,
-    ##   <https://CRAN.R-project.org/package=data.table>.
+    ##   Schwendinger B, Krylov I (2025). _data.table: Extension of
+    ##   `data.frame`_. doi:10.32614/CRAN.package.data.table
+    ##   <https://doi.org/10.32614/CRAN.package.data.table>, R package version
+    ##   1.17.8, <https://CRAN.R-project.org/package=data.table>.
     ## 
     ## A BibTeX entry for LaTeX users is
     ## 
     ##   @Manual{,
     ##     title = {data.table: Extension of `data.frame`},
-    ##     author = {Tyson Barrett and Matt Dowle and Arun Srinivasan and Jan Gorecki and Michael Chirico and Toby Hocking and Benjamin Schwendinger},
-    ##     year = {2024},
-    ##     note = {R package version 1.16.0},
+    ##     author = {Tyson Barrett and Matt Dowle and Arun Srinivasan and Jan Gorecki and Michael Chirico and Toby Hocking and Benjamin Schwendinger and Ivan Krylov},
+    ##     year = {2025},
+    ##     note = {R package version 1.17.8},
     ##     url = {https://CRAN.R-project.org/package=data.table},
+    ##     doi = {10.32614/CRAN.package.data.table},
     ##   }
 
 ``` r
@@ -1616,17 +1653,20 @@ citation("geosphere")
 
     ## To cite package 'geosphere' in publications use:
     ## 
-    ##   Hijmans R (2022). _geosphere: Spherical Trigonometry_. R package
-    ##   version 1.5-18, <https://CRAN.R-project.org/package=geosphere>.
+    ##   Hijmans R (2024). _geosphere: Spherical Trigonometry_.
+    ##   doi:10.32614/CRAN.package.geosphere
+    ##   <https://doi.org/10.32614/CRAN.package.geosphere>, R package version
+    ##   1.5-20, <https://CRAN.R-project.org/package=geosphere>.
     ## 
     ## A BibTeX entry for LaTeX users is
     ## 
     ##   @Manual{,
     ##     title = {geosphere: Spherical Trigonometry},
     ##     author = {Robert J. Hijmans},
-    ##     year = {2022},
-    ##     note = {R package version 1.5-18},
+    ##     year = {2024},
+    ##     note = {R package version 1.5-20},
     ##     url = {https://CRAN.R-project.org/package=geosphere},
+    ##     doi = {10.32614/CRAN.package.geosphere},
     ##   }
 
 ``` r
@@ -1681,17 +1721,20 @@ citation("readxl")
 
     ## To cite package 'readxl' in publications use:
     ## 
-    ##   Wickham H, Bryan J (2023). _readxl: Read Excel Files_. R package
-    ##   version 1.4.3, <https://CRAN.R-project.org/package=readxl>.
+    ##   Wickham H, Bryan J (2025). _readxl: Read Excel Files_.
+    ##   doi:10.32614/CRAN.package.readxl
+    ##   <https://doi.org/10.32614/CRAN.package.readxl>, R package version
+    ##   1.4.5, <https://CRAN.R-project.org/package=readxl>.
     ## 
     ## A BibTeX entry for LaTeX users is
     ## 
     ##   @Manual{,
     ##     title = {readxl: Read Excel Files},
     ##     author = {Hadley Wickham and Jennifer Bryan},
-    ##     year = {2023},
-    ##     note = {R package version 1.4.3},
+    ##     year = {2025},
+    ##     note = {R package version 1.4.5},
     ##     url = {https://CRAN.R-project.org/package=readxl},
+    ##     doi = {10.32614/CRAN.package.readxl},
     ##   }
 
 ``` r
@@ -1701,8 +1744,9 @@ citation("rnaturalearth")
     ## To cite package 'rnaturalearth' in publications use:
     ## 
     ##   Massicotte P, South A (2023). _rnaturalearth: World Map Data from
-    ##   Natural Earth_. R package version 1.0.1,
-    ##   <https://CRAN.R-project.org/package=rnaturalearth>.
+    ##   Natural Earth_. doi:10.32614/CRAN.package.rnaturalearth
+    ##   <https://doi.org/10.32614/CRAN.package.rnaturalearth>, R package
+    ##   version 1.0.1, <https://CRAN.R-project.org/package=rnaturalearth>.
     ## 
     ## A BibTeX entry for LaTeX users is
     ## 
@@ -1712,6 +1756,7 @@ citation("rnaturalearth")
     ##     year = {2023},
     ##     note = {R package version 1.0.1},
     ##     url = {https://CRAN.R-project.org/package=rnaturalearth},
+    ##     doi = {10.32614/CRAN.package.rnaturalearth},
     ##   }
 
 ``` r
@@ -1720,11 +1765,11 @@ citation("rnaturalearthhires")
 
     ## To cite package 'rnaturalearthhires' in publications use:
     ## 
-    ##   South A, Michael S, Massicotte P (2024). _rnaturalearthhires: High
+    ##   South A, Michael S, Massicotte P (2025). _rnaturalearthhires: High
     ##   Resolution World Vector Map Data from Natural Earth used in
-    ##   rnaturalearth_. R package version 1.0.0.9000,
-    ##   https://github.com/ropensci/rnaturalearthhires,
-    ##   <https://docs.ropensci.org/rnaturalearthhires>.
+    ##   rnaturalearth_. R package version 1.0.0.9000, commit
+    ##   e4736f636baa1c013d77d2ba028dd5bc334defee,
+    ##   <https://github.com/ropensci/rnaturalearthhires>.
     ## 
     ## A BibTeX entry for LaTeX users is
     ## 
@@ -1732,10 +1777,9 @@ citation("rnaturalearthhires")
     ##     title = {rnaturalearthhires: High Resolution World Vector Map Data from Natural Earth used in
     ## rnaturalearth},
     ##     author = {Andy South and Schramm Michael and Philippe Massicotte},
-    ##     year = {2024},
-    ##     note = {R package version 1.0.0.9000, 
-    ## https://github.com/ropensci/rnaturalearthhires},
-    ##     url = {https://docs.ropensci.org/rnaturalearthhires},
+    ##     year = {2025},
+    ##     note = {R package version 1.0.0.9000, commit e4736f636baa1c013d77d2ba028dd5bc334defee},
+    ##     url = {https://github.com/ropensci/rnaturalearthhires},
     ##   }
 
 ``` r
@@ -1762,17 +1806,20 @@ citation("terra")
 
     ## To cite package 'terra' in publications use:
     ## 
-    ##   Hijmans R (2024). _terra: Spatial Data Analysis_. R package version
-    ##   1.7-78, <https://CRAN.R-project.org/package=terra>.
+    ##   Hijmans R (2025). _terra: Spatial Data Analysis_.
+    ##   doi:10.32614/CRAN.package.terra
+    ##   <https://doi.org/10.32614/CRAN.package.terra>, R package version
+    ##   1.8-54, <https://CRAN.R-project.org/package=terra>.
     ## 
     ## A BibTeX entry for LaTeX users is
     ## 
     ##   @Manual{,
     ##     title = {terra: Spatial Data Analysis},
     ##     author = {Robert J. Hijmans},
-    ##     year = {2024},
-    ##     note = {R package version 1.7-78},
+    ##     year = {2025},
+    ##     note = {R package version 1.8-54},
     ##     url = {https://CRAN.R-project.org/package=terra},
+    ##     doi = {10.32614/CRAN.package.terra},
     ##   }
 
 ``` r
