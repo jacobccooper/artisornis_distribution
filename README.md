@@ -1,0 +1,1 @@
+Full code for the manuscript on *Artisornis* distributions. [Main workflow readable here](https://github.com/jacobccooper/artisornis_distribution/blob/main/artisornis_appendix.md). Files from the first version, using the previous version of KUENM, are included for posterity and comparison.
